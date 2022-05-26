@@ -1,1 +1,1 @@
-# vmware-ceph-quincy
+# vmware-ceph-pacific
