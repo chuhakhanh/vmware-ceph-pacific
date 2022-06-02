@@ -1,50 +1,31 @@
 ---
-- name: Set hostname 
-  hostname: 
-    name: "{{ hostname }}"
+- hosts: all
+  gather_facts: true
+  become: true
+  serial: 4
+  tasks: 
 
-- name: Copy host file to etc host
-  copy:
-    src: config/hosts
-    dest: /etc/hosts
-
-- name: Create a backup directory if it does not exist
-  file:
-    path: /etc/yum.repos.d/old
-    state: directory
-    mode: '0755'
-
-- name: Move all repo files to backup directory
-  shell: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/old
-  ignore_errors: yes
-
-- name: Copy repo file to etc host
-  copy:
-    src: config/2022_03.repo
-    dest: /etc/yum.repos.d/
-  
-- name: Make sure we have yum-utils
-  yum: 
-    name: yum-utils 
-    state: latest
-  ignore_errors: yes
-
-- name: Make sure we have yum-plugin-priorities
-  yum: 
-    name: yum-plugin-priorities 
-    state: latest    
-  ignore_errors: yes
-  
-- name: upgrade all packages
-  yum: 
-    name: all 
-    state: latest
-  ignore_errors: yes
-
-- name: run copy public key
-  shell: |
-    for i in lab-1 lab-2 lab-3 ; do
-      sshpass -p alo1234 ssh-copy-id -f -i ~/.ssh/id_rsa.pub root@$i
-    done
-  args:
-    executable: /bin/bash
+    - name: set system hostname
+      hostname:
+        name: {{ inventory_hostname }}
+    
+    - name: Copy host file to etc host
+      copy:
+        src: config/hosts
+        dest: /etc/hosts
+    
+    - name: Create a backup directory if it does not exist
+      file:
+        path: /etc/yum.repos.d/old
+        state: directory
+        mode: '0755'
+    
+    - name: Move all repo files to backup directory
+      shell: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/old
+      ignore_errors: yes
+    
+    - name: Copy repo file to etc host
+      copy:
+        src: config/2022_03.repo
+        dest: /etc/yum.repos.d/
+ 
