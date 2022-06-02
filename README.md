@@ -10,5 +10,7 @@ cp -u config/hosts /etc/hosts
 ## Deploy 
 ansible-playbook -i config/inventory deploy_lab_ceph.yml 
 
-./key_copy.sh host_list.txt
-chmod u+x key_copy.sh
+cp config/2022_03.repo /etc/yum.repos.d/
+yum install -y sshpass 
+ssh-keygen
+chmod u+x key_copy.sh; ./key_copy.sh config/host_list.txt
