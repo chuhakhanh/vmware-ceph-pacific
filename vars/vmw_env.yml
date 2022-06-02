@@ -36,7 +36,7 @@ vms:
       datastore: node2-sata1
     networks:
       - name: vlan_111
-        ip: 10.1.17.71
+        ip: 10.1.17.72
         netmask: 255.255.0.0
         gateway: 10.1.0.1
         device_type: vmxnet3
@@ -45,7 +45,7 @@ vms:
         device_type: vmxnet3
 
       - name: vlan_126
-        ip: 192.168.126.71
+        ip: 192.168.126.72
         netmask: 255.255.255.0
         device_type: vmxnet3
 
@@ -57,10 +57,10 @@ vms:
     - size_gb: 50
       type: thin
       datastore: node4-sata1
-    - size_gb: 1
+    - size_gb: 10
       type: thin
       datastore: node4-sata1
-    - size_gb: 1
+    - size_gb: 10
       type: thin
       datastore: node4-sata1
     - size_gb: 1
@@ -91,10 +91,10 @@ vms:
     - size_gb: 50
       type: thin
       datastore: node4-sata1
-    - size_gb: 1
+    - size_gb: 10
       type: thin
       datastore: node4-sata1
-    - size_gb: 1
+    - size_gb: 10
       type: thin
       datastore: node4-sata1
     - size_gb: 1
@@ -125,10 +125,10 @@ vms:
     - size_gb: 50
       type: thin
       datastore: node4-sata1
-    - size_gb: 1
+    - size_gb: 10
       type: thin
       datastore: node4-sata1
-    - size_gb: 1
+    - size_gb: 10
       type: thin
       datastore: node4-sata1
     - size_gb: 1
