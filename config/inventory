@@ -1,0 +1,11 @@
+[client]
+c3-server-a
+c3-server-b
+
+[ceph]
+c3-server-c
+c3-server-d
+c3-server-e
+c3-server-f
+
+
