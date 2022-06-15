@@ -10,7 +10,7 @@
     folder: /khanhchu
     name: "{{ item.name }}"
     state: absent
-    loop: "{{ vms }}" 
+  loop: "{{ vms }}" 
   delegate_to: localhost
   register: deploy
 

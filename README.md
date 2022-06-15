@@ -17,6 +17,8 @@ chmod u+x key_copy.sh; ./key_copy.sh config/host_list.txt
 ### Deploy app
 ansible-playbook -i config/inventory prepare_all_node.yml
 
+### Destroy virtual machines
+ansible-playbook -i config/inventory destroy_lab_ceph.yml 
 
 ### cephadm-ansible on c3-server-c
 dnf install git -y
