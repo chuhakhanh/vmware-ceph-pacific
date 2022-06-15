@@ -18,12 +18,12 @@ chmod u+x key_copy.sh; ./key_copy.sh config/host_list.txt
 ansible-playbook -i config/inventory prepare_all_node.yml
 
 
-### cephadm-ansible
+### cephadm-ansible on c3-server-c
 dnf install git -y
 git clone https://github.com/ceph/cephadm-ansible
 sudo yum install -y python3-pip python3-virtualenv
 virtualenv --python=python3 /path/to/virtualenv_python3
-source /path/to/virtualenv_python3/bin/activate 
+source /path/to/virtualenv_python3/bin/activate; cd /root/cephadm-ansible
 (virtualenv_python3) [root@c3-server-c cephadm-ansible]# pip list
 Package    Version
 ---------- -------
@@ -31,7 +31,6 @@ pip        21.3.1
 setuptools 59.6.0
 wheel      0.37.1
 (virtualenv_python3) pip3 install -r requirements.txt
-(virtualenv_python3) pip3 install ansible
 (virtualenv_python3) [root@c3-server-c cephadm-ansible]# pip list
 Package            Version
 ------------------ -------
@@ -63,12 +62,13 @@ wcwidth            0.2.5
 wheel              0.37.1
 zipp               3.6.0
 
+
 yum remove docker-ce docker-ce-cli containerd.io
-hostname > hosts
 ssh-keygen
-ssh-copy-id root@localhost
+./key_copy.sh hosts
 ansible-playbook -i hosts cephadm-preflight.yml --extra-vars "ceph_origin="
 vi initial-config-primary-cluster.yaml
+
 
 cephadm bootstrap --mon-ip=10.1.17.73 \
 --apply-spec=initial-config-primary-cluster.yaml \

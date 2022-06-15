@@ -1,0 +1,9 @@
+service_type: osd
+service_id: default_drive_group
+placement:
+  hosts:
+    - c3-server-c
+data_devices:
+  paths:
+    - /dev/vde
+    - /dev/vdf

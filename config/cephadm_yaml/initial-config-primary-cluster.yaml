@@ -1,29 +1,50 @@
 ---
 service_type: host
+addr: 10.1.17.71
+hostname: c3-server-a
+---
+service_type: host
 addr: 10.1.17.73
 hostname: c3-server-c
+---
+service_type: host
+addr: 10.1.17.74
+hostname: c3-server-d
+---
+service_type: host
+addr: 10.1.17.75
+hostname: c3-server-e
 ---
 service_type: mon 
 placement:
   hosts:
+    - c3-server-a
     - c3-server-c
+    - c3-server-d
+    - c3-server-e
 ---
 service_type: rgw 
 service_id: realm.zone
 placement:
   hosts:
     - c3-server-c
+    - c3-server-d
 ---
 service_type: mgr 
 placement:
   hosts:
+    - c3-server-a
     - c3-server-c
+    - c3-server-d
+    - c3-server-e
 ---
 service_type: osd 
 service_id: default_drive_group
 placement: 
   hosts:
     - c3-server-c
+    - c3-server-d
+    - c3-server-e
 data_devices:
   paths:
     - /dev/sdb
