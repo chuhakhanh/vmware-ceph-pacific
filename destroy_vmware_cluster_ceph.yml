@@ -1,5 +1,5 @@
 ---
-- name: Create a virtual machine from a template
+- name: Remove a virtual machine from a template
   community.vmware.vmware_guest:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
@@ -10,6 +10,7 @@
     folder: /khanhchu
     name: "{{ item.name }}"
     state: absent
+    force: true
   loop: "{{ vms }}" 
   delegate_to: localhost
   register: deploy
