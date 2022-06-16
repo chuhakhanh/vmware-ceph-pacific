@@ -10,7 +10,7 @@
     folder: /khanhchu
     name: "{{ item.name }}"
     state: poweredon
-    template: centos-stream-8-kolla-2
+    template: centos-stream-8-ceph-1
     esxi_hostname: "{{ item.esxi_hostname }}"
     disk: "{{ item.disk }}"
     hardware:

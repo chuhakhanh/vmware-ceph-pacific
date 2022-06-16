@@ -6,12 +6,11 @@ git clone https://github.com/chuhakhanh/vmware-ceph-pacific
 git pull --branch master https://github.com/chuhakhanh/vmware-ceph-pacific
 cd vmware-ceph-pacific
 cp -u config/hosts /etc/hosts
-
-### Deploy virtual machines 
-ansible-playbook -i config/inventory deploy_lab_ceph.yml 
 cp config/2022_03.repo /etc/yum.repos.d/
 yum install -y sshpass 
 ssh-keygen
+### Deploy virtual machines 
+ansible-playbook -i config/inventory deploy_lab_ceph.yml 
 chmod u+x key_copy.sh; ./key_copy.sh config/host_list.txt
 
 ### Deploy app
@@ -25,6 +24,7 @@ dnf install git -y
 git clone https://github.com/ceph/cephadm-ansible
 sudo yum install -y python3-pip python3-virtualenv
 virtualenv --python=python3 /path/to/virtualenv_python3
+
 source /path/to/virtualenv_python3/bin/activate; cd /root/cephadm-ansible
 (virtualenv_python3) [root@c3-server-c cephadm-ansible]# pip list
 Package    Version
@@ -65,7 +65,7 @@ wheel              0.37.1
 zipp               3.6.0
 
 
-yum remove docker-ce docker-ce-cli containerd.io
+yum remove -y docker-ce docker-ce-cli containerd.io
 ssh-keygen
 ./key_copy.sh hosts
 ansible-playbook -i hosts cephadm-preflight.yml --extra-vars "ceph_origin="
