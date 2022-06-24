@@ -1,7 +1,7 @@
 # vmware-ceph-pacific
 
-## Setup
-### Get data
+## I. Setup
+### 1. Get data
     git clone https://github.com/chuhakhanh/vmware-ceph-pacific 
     git pull --branch master https://github.com/chuhakhanh/vmware-ceph-pacific
     cd vmware-ceph-pacific
@@ -9,18 +9,18 @@
     cp config/2022_03.repo /etc/yum.repos.d/
     yum install -y sshpass 
     ssh-keygen
-### Deploy virtual machines 
+### 2. Deploy virtual machines 
     ansible-playbook -i config/inventory deploy_lab_ceph.yml 
     chmod u+x key_copy.sh; ./key_copy.sh config/host_list.txt
     scp config/host_list.txt key_copy.sh c3-server-c:/root
 
-### Deploy app
+### 3. Deploy app
     ansible-playbook -i config/inventory prepare_all_node.yml
 
-### Destroy virtual machines
+### 4. Destroy virtual machines
     ansible-playbook -i config/inventory destroy_lab_ceph.yml 
 
-### cephadm-ansible on c3-server-c
+### 5. cephadm-ansible on c3-server-c
     yum install ansible -y
     yum install git -y
     git clone https://github.com/ceph/cephadm-ansible
@@ -33,12 +33,12 @@
     source /env_python3/bin/activate
     pip3 install -r requirements.txt
 
-### preflight on c3-server-c
+### 6. preflight on c3-server-c
 Start by checking on the amount of storage you have available on your node.  This guide assume the loopback file will be created in the root partition.  Become root and then execute the following command:
     
     ansible-playbook -i preflight_host_list.txt cephadm-preflight.yml --extra-vars "ceph_origin="
 
-### bootstrap on c3-server-c
+### 7. bootstrap on c3-server-c
 
     ansible-playbook -i hosts cephadm-distribute-ssh-key.yml -e admin_node=c3-server-c -e cephadm_pubkey_path=/root/.ssh/id_rsa.pub 
     cephadm bootstrap --mon-ip=10.1.17.73 \
@@ -53,15 +53,15 @@ Start by checking on the amount of storage you have available on your node.  Thi
     --allow-fqdn-hostname 
 
 
-## Ceph Operation
+## II. Ceph Operation
 
-### Add MON on c3-server-d, c3-server-e
+### 1. Add MON on c3-server-d, c3-server-e
     ssh-copy-id -f -i /etc/ceph/ceph.pub root@c3-server-d
     ssh-copy-id -f -i /etc/ceph/ceph.pub root@c3-server-e
     cephadm shell -- ceph orch host add c3-server-d
     cephadm shell -- ceph orch host add c3-server-e
     ceph telemetry on --license sharing-1-0
-    
+
     for i in c3-server-c c3-server-d c3-server-e; do sudo ceph orch host label add $i osd; done
     for i in c3-server-c c3-server-d c3-server-e; do sudo ceph orch host label add $i mon; done
 
@@ -76,9 +76,9 @@ Start by checking on the amount of storage you have available on your node.  Thi
     c3-server-e  10.1.17.75  osd mon                 
     3 hosts in cluster
 
-### Add OSD on c3-server-a
+### 2. Add OSD on c3-server-a
 
-#### Adđ OSD by cli
+#### a. Adđ OSD by cli
     cephadm shell -- ceph orch device ls
     cephadm shell -- ceph orch daemon add osd c3-server-c:/dev/sdb
     cephadm shell -- ceph orch daemon add osd c3-server-c:/dev/sdc
@@ -92,13 +92,13 @@ Start by checking on the amount of storage you have available on your node.  Thi
         cephadm shell -- ceph orch daemon add osd $i:/dev/sdc 
     done
 
-#### Adđ OSD by apply yaml
+#### b. Adđ OSD by apply yaml
     
     ceph orch apply -i /tmp/osd_spec.yml
     ceph osd tree
     ceph status
 
-### Add MON on c3-server-a
+### 3. Add MON on c3-server-a
     cephadm shell -- ceph config dump
     ssh-copy-id -f -i /etc/ceph/ceph.pub root@c3-server-a
     cephadm shell -- ceph orch host add c3-server-a
@@ -109,9 +109,9 @@ Start by checking on the amount of storage you have available on your node.  Thi
     ceph orch host ls
     
 
-### Set MON config
+### 4. Set MON config
 
-#### Network
+#### a. Network
     [root@c3-server-a ~]# ceph mon dump
     epoch 8
     fsid 4d785516-f211-11ec-b064-005056bafcf9
@@ -124,14 +124,14 @@ Start by checking on the amount of storage you have available on your node.  Thi
     2: [v2:10.1.17.73:3300/0,v1:10.1.17.73:6789/0] mon.c3-server-c
     3: [v2:10.1.17.74:3300/0,v1:10.1.17.74:6789/0] mon.c3-server-d
     dumped monmap epoch 8
-#### Compact MON Database
+#### b. Compact MON Database
     ceph config show mon.c3-server-c
     ceph config show mon.c3-server-c mon_host
     ceph config set mon mon_compact_on_start true
     ceph orch restart mon
     ssh c3-server-c sudo du -sch /var/lib/ceph/4d7...cf9/mon.c3-server-c/store.db/
 
-#### Network    
+#### c. Network    
     ceph config get mon public_network 
     ceph config get mon cluster_network 
     ceph config set mon public_network 192.168.126.0/24
@@ -150,7 +150,7 @@ Start by checking on the amount of storage you have available on your node.  Thi
 
     podman restart $(podman ps -a -q)
 
-#### Compact MON Database
+#### d. Compact MON Database
     ceph config get mon.c3-server-c mon_data_avail_warn
     ceph config get mon.c3-server-c mon_max_pg_per_osd
     ceph config set mon mon_data_avail_warn 15
