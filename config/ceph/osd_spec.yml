@@ -3,7 +3,9 @@ service_id: default_drive_group
 placement:
   hosts:
     - c3-server-c
+    - c3-server-d
+    - c3-server-e
 data_devices:
   paths:
-    - /dev/vde
-    - /dev/vdf
+    - /dev/sdd
+    - /dev/sde
