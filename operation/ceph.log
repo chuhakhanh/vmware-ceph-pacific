@@ -1,0 +1,641 @@
+(virtualenv_python3) [root@c3-server-c cephadm-ansible]# diff packages_all_pre_preflight.txt packages_all_post_preflight.txt | grep ">"
+> lttng-ust-2.8.1-11.el8.x86_64
+> libunwind-1.4.0-5.el8s.x86_64
+> cephadm-16.2.7-1.el8s.noarch
+> libcephfs2-16.2.7-1.el8s.x86_64
+> fuse3-libs-3.3.0-15.el8.x86_64
+> python3-rgw-16.2.7-1.el8s.x86_64
+> fuse-overlayfs-1.8.2-1.module_el8.7.0+1106+45480ee0.x86_64
+> epel-release-8-11.el8.noarch
+> libradosstriper1-16.2.7-1.el8s.x86_64
+> containers-common-1-23.module_el8.7.0+1106+45480ee0.x86_64
+> librbd1-16.2.7-1.el8s.x86_64
+> python3-rbd-16.2.7-1.el8s.x86_64
+> python3-prettytable-0.7.2-14.el8.noarch
+> slirp4netns-1.1.8-2.module_el8.7.0+1106+45480ee0.x86_64
+> gpg-pubkey-2f86d6a1-5cf7cefb
+> liboath-2.6.2-4.el8s.x86_64
+> python3-ceph-common-16.2.7-1.el8s.x86_64
+> container-selinux-2.180.0-1.module_el8.7.0+1106+45480ee0.noarch
+> podman-4.0.2-1.module_el8.7.0+1106+45480ee0.x86_64
+> epel-next-release-8-11.el8.noarch
+> python3-ceph-argparse-16.2.7-1.el8s.x86_64
+> leveldb-1.22-1.el8.x86_64
+> runc-1.0.3-3.module_el8.7.0+1106+45480ee0.x86_64
+> podman-catatonit-4.0.2-1.module_el8.7.0+1106+45480ee0.x86_64
+> librados2-16.2.7-1.el8s.x86_64
+> librgw2-16.2.7-1.el8s.x86_64
+> gperftools-libs-2.7-9.el8.x86_64
+> fuse3-3.3.0-15.el8.x86_64
+> librabbitmq-0.9.0-3.el8.x86_64
+> shadow-utils-subid-4.6-16.el8.x86_64
+> python3-cephfs-16.2.7-1.el8s.x86_64
+> libslirp-4.4.0-1.module_el8.6.0+926+8bef8ae7.x86_64
+> python3-rados-16.2.7-1.el8s.x86_64
+> libbabeltrace-1.5.4-4.el8.x86_64
+> librdkafka-1.5.0-1.el8.x86_64
+> ceph-common-16.2.7-1.el8s.x86_64
+
+ceph orch device ls
+cephadm shell -- ceph orch host add c3-server-a 10.1.17.71
+cephadm shell
+ceph status
+
+ceph orch apply -i /tmp/osd-spec.yaml
+
+
+cephadm bootstrap --mon-ip=10.1.17.73 \
+--apply-spec=initial-config-primary-cluster.yaml \
+--initial-dashboard-password=redhat \
+--dashboard-password-noupdate \
+--log-to-file /root/ceph/setup-bootstrap.log
+
+
+
+openstack server create --flavor tiny --image cirros --nic net-id=d9c7fefb-f680-4b21-9834-737d45d5c9f2 --availability-zone nova:node2:node2 test_inst1;
+
+service_type: osd
+service_id: default_drive_group
+placement:
+  hosts:
+    - c3-server-c
+    - c3-server-d
+    - c3-server-e
+data_devices:
+  paths:
+    - /dev/sdd
+    - /dev/sde
+
+[root@c3-server-a ~]# ceph osd tree
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.17569  root default                                   
+-3         0.05856      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+ 6    hdd  0.00980          osd.6             up   1.00000  1.00000
+11    hdd  0.00980          osd.11            up   1.00000  1.00000
+-5         0.05856      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+ 8    hdd  0.00980          osd.8             up   1.00000  1.00000
+ 9    hdd  0.00980          osd.9             up   1.00000  1.00000
+-7         0.05856      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+ 7    hdd  0.00980          osd.7             up   1.00000  1.00000
+10    hdd  0.00980          osd.10            up   1.00000  1.00000
+[root@c3-server-a ~]# ceph osd crush remove 6
+
+
+[root@c3-server-a ~]# ceph orch device ls
+HOST         PATH      TYPE  DEVICE ID   SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                 
+c3-server-c  /dev/sdb  hdd              21.4G             17m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdc  hdd              21.4G             17m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdd  hdd              10.7G             17m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sde  hdd              10.7G             17m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdb  hdd              21.4G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdc  hdd              21.4G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdd  hdd              10.7G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sde  hdd              10.7G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdb  hdd              21.4G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdc  hdd              21.4G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdd  hdd              10.7G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sde  hdd              10.7G             16m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+
+
+
+
+[root@c3-server-a ~]# ceph orch daemon stop osd.8
+Scheduled to stop osd.8 on host 'c3-server-d'
+
+
+[root@c3-server-a ~]# ceph osd tree
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.13651  root default                                   
+-3         0.03897      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+-5         0.04877      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+ 8    hdd  0.00980          osd.8           down   1.00000  1.00000
+ 
+ 
+[root@c3-server-a ~]# ceph orch daemon rm osd.8 --force
+Removed osd.8 from host 'c3-server-d'
+[root@c3-server-a ~]# ceph osd tree
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.13651  root default                                   
+-3         0.03897      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+-5         0.04877      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+ 8    hdd  0.00980          osd.8           down   1.00000  1.00000
+-7         0.04877      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+ 7    hdd  0.00980          osd.7             up   1.00000  1.00000
+ 
+[root@c3-server-a ~]# ceph osd crush rm osd.8
+removed item id 8 name 'osd.8' from crush map
+
+[root@c3-server-a ~]# ceph osd tree
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.12671  root default                                   
+-3         0.03897      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+-5         0.03897      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+-7         0.04877      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+ 7    hdd  0.00980          osd.7             up   1.00000  1.00000
+ 8               0  osd.8                   down   1.00000  1.00000
+ 
+ 
+ [root@c3-server-a ~]# ceph osd rm 8
+removed osd.8
+[root@c3-server-a ~]# ceph osd tree
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.12671  root default                                   
+-3         0.03897      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+-5         0.03897      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+-7         0.04877      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+ 7    hdd  0.00980          osd.7             up   1.00000  1.00000
+
+########################### zap device to available #################################
+
+ [ceph: root@c3-server-a /]# ceph orch device ls 
+HOST         PATH      TYPE  DEVICE ID   SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                 
+c3-server-c  /dev/sdb  hdd              21.4G             3m ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdc  hdd              21.4G             3m ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdd  hdd              10.7G             3m ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sde  hdd              10.7G             3m ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdb  hdd              21.4G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdc  hdd              21.4G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdd  hdd              10.7G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sde  hdd              10.7G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdb  hdd              21.4G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdc  hdd              21.4G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdd  hdd              10.7G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sde  hdd              10.7G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+[ceph: root@c3-server-a /]# ceph device ls
+DEVICE  HOST:DEV  DAEMONS  WEAR  LIFE EXPECTANCY
+[ceph: root@c3-server-a /]# ceph orch device zap c3-server-c /dev/sdd --force
+
+zap successful for /dev/sdd on c3-server-c
+[ceph: root@c3-server-a /]# 
+[ceph: root@c3-server-a /]# ceph device ls
+DEVICE  HOST:DEV  DAEMONS  WEAR  LIFE EXPECTANCY
+[ceph: root@c3-server-a /]# ceph orch device ls 
+HOST         PATH      TYPE  DEVICE ID   SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                 
+c3-server-c  /dev/sdb  hdd              21.4G             1s ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdc  hdd              21.4G             1s ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdd  hdd              10.7G  Yes        1s ago                                                                    
+c3-server-c  /dev/sde  hdd              10.7G             1s ago     Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdb  hdd              21.4G             22m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdc  hdd              21.4G             22m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdd  hdd              10.7G             22m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sde  hdd              10.7G             22m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdb  hdd              21.4G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdc  hdd              21.4G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdd  hdd              10.7G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sde  hdd              10.7G             18m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+
+[ceph: root@c3-server-a /]# ceph osd tree 
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.12671  root default                                   
+-3         0.04877      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+ 6    hdd  0.00980          osd.6             up   1.00000  1.00000
+-5         0.03897      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+-7         0.03897      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+
+
+
+
+ [ceph: root@c3-server-a /]# ceph orch device zap c3-server-c /dev/sde --force 
+zap successful for /dev/sde on c3-server-c
+[ceph: root@c3-server-a /]# ceph orch device ls 
+HOST         PATH      TYPE  DEVICE ID   SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                 
+c3-server-c  /dev/sdb  hdd              21.4G             81s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdc  hdd              21.4G             81s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdd  hdd              10.7G             81s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sde  hdd              10.7G             81s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdb  hdd              21.4G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdc  hdd              21.4G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdd  hdd              10.7G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sde  hdd              10.7G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdb  hdd              21.4G             20m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdc  hdd              21.4G             20m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdd  hdd              10.7G             20m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sde  hdd              10.7G             20m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+[ceph: root@c3-server-a /]# ceph osd tree 
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.12671  root default                                   
+-3         0.04877      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+ 6    hdd  0.00980          osd.6             up   1.00000  1.00000
+-5         0.03897      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+-7         0.03897      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+ 7               0  osd.7                   down   1.00000  1.00000
+[ceph: root@c3-server-a /]# ceph orch device ls 
+HOST         PATH      TYPE  DEVICE ID   SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                 
+c3-server-c  /dev/sdb  hdd              21.4G             27s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdc  hdd              21.4G             27s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdd  hdd              10.7G             27s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sde  hdd              10.7G  Yes        27s ago                                                                   
+c3-server-d  /dev/sdb  hdd              21.4G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdc  hdd              21.4G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdd  hdd              10.7G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sde  hdd              10.7G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdb  hdd              21.4G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdc  hdd              21.4G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdd  hdd              10.7G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sde  hdd              10.7G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+[ceph: root@c3-server-a /]# ceph osd tree       
+ID  CLASS  WEIGHT   TYPE NAME             STATUS  REWEIGHT  PRI-AFF
+-1         0.13651  root default                                   
+-3         0.05856      host c3-server-c                           
+ 0    hdd  0.01949          osd.0             up   1.00000  1.00000
+ 1    hdd  0.01949          osd.1             up   1.00000  1.00000
+ 6    hdd  0.00980          osd.6             up   1.00000  1.00000
+ 7    hdd  0.00980          osd.7             up   1.00000  1.00000
+-5         0.03897      host c3-server-d                           
+ 2    hdd  0.01949          osd.2             up   1.00000  1.00000
+ 3    hdd  0.01949          osd.3             up   1.00000  1.00000
+-7         0.03897      host c3-server-e                           
+ 4    hdd  0.01949          osd.4             up   1.00000  1.00000
+ 5    hdd  0.01949          osd.5             up   1.00000  1.00000
+[ceph: root@c3-server-a /]# ceph orch device ls 
+HOST         PATH      TYPE  DEVICE ID   SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                 
+c3-server-c  /dev/sdb  hdd              21.4G             16s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdc  hdd              21.4G             16s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sdd  hdd              10.7G             16s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-c  /dev/sde  hdd              10.7G             16s ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdb  hdd              21.4G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdc  hdd              21.4G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sdd  hdd              10.7G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-d  /dev/sde  hdd              10.7G             24m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdb  hdd              21.4G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdc  hdd              21.4G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sdd  hdd              10.7G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+c3-server-e  /dev/sde  hdd              10.7G             21m ago    Insufficient space (<10 extents) on vgs, LVM detected, locked  
+
+
+
+
+
+
+
+[root@c3-server-a ~]# ceph orch ls
+NAME                     PORTS        RUNNING  REFRESHED  AGE  PLACEMENT                                        
+                                      
+osd                                         6  4m ago     -    <unmanaged>                                      
+osd.default_drive_group                     2  89s ago    6d   c3-server-c;c3-server-d;c3-server-e    
+
+ceph orch apply -i all-available-devices.yaml
+[root@c3-server-a ~]# ceph orch ls
+osd                                           6  4m ago     -    <unmanaged>                                      
+osd.all-available-devices                     0  -          21h  <unmanaged>                                      
+osd.default_drive_group                       2  4m ago     7d   c3-server-c;c3-server-d;c3-server-e        
+
+
+
+### Set application rbd
+
+[root@c3-server-a ~]# ceph osd pool ls detail
+pool 1 'device_health_metrics' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 1 pgp_num 1 autoscale_mode on last_change 250 flags hashpspool stripe_width 0 pg_num_max 32 pg_num_min 1 application mgr_devicehealth
+pool 2 'replpool1' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 64 pgp_num 64 autoscale_mode on last_change 264 flags hashpspool stripe_width 0
+
+[root@c3-server-a ~]# ceph osd pool ls detail -f json-pretty
+
+[
+    {
+        "pool_id": 1,
+        "pool_name": "device_health_metrics",
+        "create_time": "2022-06-22T10:17:12.018407+0000",
+        "flags": 1,
+        "flags_names": "hashpspool",
+        "type": 1,
+        "size": 3,
+        "min_size": 2,
+        "crush_rule": 0,
+        "peering_crush_bucket_count": 0,
+        "peering_crush_bucket_target": 0,
+        "peering_crush_bucket_barrier": 0,
+        "peering_crush_bucket_mandatory_member": 2147483647,
+        "object_hash": 2,
+        "pg_autoscale_mode": "on",
+        "pg_num": 1,
+        "pg_placement_num": 1,
+        "pg_placement_num_target": 1,
+        "pg_num_target": 1,
+        "pg_num_pending": 1,
+        "last_pg_merge_meta": {
+            "source_pgid": "0.0",
+            "ready_epoch": 0,
+            "last_epoch_started": 0,
+            "last_epoch_clean": 0,
+            "source_version": "0'0",
+            "target_version": "0'0"
+        },
+        "last_change": "250",
+        "last_force_op_resend": "0",
+        "last_force_op_resend_prenautilus": "0",
+        "last_force_op_resend_preluminous": "0",
+        "auid": 0,
+        "snap_mode": "selfmanaged",
+        "snap_seq": 0,
+        "snap_epoch": 0,
+        "pool_snaps": [],
+        "removed_snaps": "[]",
+        "quota_max_bytes": 0,
+        "quota_max_objects": 0,
+        "tiers": [],
+        "tier_of": -1,
+        "read_tier": -1,
+        "write_tier": -1,
+        "cache_mode": "none",
+        "target_max_bytes": 0,
+        "target_max_objects": 0,
+        "cache_target_dirty_ratio_micro": 400000,
+        "cache_target_dirty_high_ratio_micro": 600000,
+        "cache_target_full_ratio_micro": 800000,
+        "cache_min_flush_age": 0,
+        "cache_min_evict_age": 0,
+        "erasure_code_profile": "",
+        "hit_set_params": {
+            "type": "none"
+        },
+        "hit_set_period": 0,
+        "hit_set_count": 0,
+        "use_gmt_hitset": true,
+        "min_read_recency_for_promote": 0,
+        "min_write_recency_for_promote": 0,
+        "hit_set_grade_decay_rate": 0,
+        "hit_set_search_last_n": 0,
+        "grade_table": [],
+        "stripe_width": 0,
+        "expected_num_objects": 0,
+        "fast_read": false,
+        "options": {
+            "pg_num_max": 32,
+            "pg_num_min": 1
+        },
+        "application_metadata": {
+            "mgr_devicehealth": {}
+        }
+    },
+    {
+        "pool_id": 2,
+        "pool_name": "replpool1",
+        "create_time": "2022-07-07T07:27:30.162324+0000",
+        "flags": 1,
+        "flags_names": "hashpspool",
+        "type": 1,
+        "size": 3,
+        "min_size": 2,
+        "crush_rule": 0,
+        "peering_crush_bucket_count": 0,
+        "peering_crush_bucket_target": 0,
+        "peering_crush_bucket_barrier": 0,
+        "peering_crush_bucket_mandatory_member": 2147483647,
+        "object_hash": 2,
+        "pg_autoscale_mode": "on",
+        "pg_num": 64,
+        "pg_placement_num": 64,
+        "pg_placement_num_target": 64,
+        "pg_num_target": 64,
+        "pg_num_pending": 64,
+        "last_pg_merge_meta": {
+            "source_pgid": "0.0",
+            "ready_epoch": 0,
+            "last_epoch_started": 0,
+            "last_epoch_clean": 0,
+            "source_version": "0'0",
+            "target_version": "0'0"
+        },
+        "last_change": "264",
+        "last_force_op_resend": "0",
+        "last_force_op_resend_prenautilus": "0",
+        "last_force_op_resend_preluminous": "0",
+        "auid": 0,
+        "snap_mode": "selfmanaged",
+        "snap_seq": 0,
+        "snap_epoch": 0,
+        "pool_snaps": [],
+        "removed_snaps": "[]",
+        "quota_max_bytes": 0,
+        "quota_max_objects": 0,
+        "tiers": [],
+        "tier_of": -1,
+        "read_tier": -1,
+        "write_tier": -1,
+        "cache_mode": "none",
+        "target_max_bytes": 0,
+        "target_max_objects": 0,
+        "cache_target_dirty_ratio_micro": 400000,
+        "cache_target_dirty_high_ratio_micro": 600000,
+        "cache_target_full_ratio_micro": 800000,
+        "cache_min_flush_age": 0,
+        "cache_min_evict_age": 0,
+        "erasure_code_profile": "",
+        "hit_set_params": {
+            "type": "none"
+        },
+        "hit_set_period": 0,
+        "hit_set_count": 0,
+        "use_gmt_hitset": true,
+        "min_read_recency_for_promote": 0,
+        "min_write_recency_for_promote": 0,
+        "hit_set_grade_decay_rate": 0,
+        "hit_set_search_last_n": 0,
+        "grade_table": [],
+        "stripe_width": 0,
+        "expected_num_objects": 0,
+        "fast_read": false,
+        "options": {},
+        "application_metadata": {}
+    }
+]
+[root@c3-server-a ~]# ceph osd pool application enable replpool1 rbd
+enabled application 'rbd' on pool 'replpool1'
+[root@c3-server-a ~]# ceph osd pool ls detail
+pool 1 'device_health_metrics' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 1 pgp_num 1 autoscale_mode on last_change 250 flags hashpspool stripe_width 0 pg_num_max 32 pg_num_min 1 application mgr_devicehealth
+pool 2 'replpool1' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 64 pgp_num 64 autoscale_mode on last_change 267 flags hashpspool stripe_width 0 application rbd
+
+[root@c3-server-a ~]# ceph osd pool ls detail -f json-pretty
+
+[
+    {
+        "pool_id": 1,
+        "pool_name": "device_health_metrics",
+        "create_time": "2022-06-22T10:17:12.018407+0000",
+        "flags": 1,
+        "flags_names": "hashpspool",
+        "type": 1,
+        "size": 3,
+        "min_size": 2,
+        "crush_rule": 0,
+        "peering_crush_bucket_count": 0,
+        "peering_crush_bucket_target": 0,
+        "peering_crush_bucket_barrier": 0,
+        "peering_crush_bucket_mandatory_member": 2147483647,
+        "object_hash": 2,
+        "pg_autoscale_mode": "on",
+        "pg_num": 1,
+        "pg_placement_num": 1,
+        "pg_placement_num_target": 1,
+        "pg_num_target": 1,
+        "pg_num_pending": 1,
+        "last_pg_merge_meta": {
+            "source_pgid": "0.0",
+            "ready_epoch": 0,
+            "last_epoch_started": 0,
+            "last_epoch_clean": 0,
+            "source_version": "0'0",
+            "target_version": "0'0"
+        },
+        "last_change": "250",
+        "last_force_op_resend": "0",
+        "last_force_op_resend_prenautilus": "0",
+        "last_force_op_resend_preluminous": "0",
+        "auid": 0,
+        "snap_mode": "selfmanaged",
+        "snap_seq": 0,
+        "snap_epoch": 0,
+        "pool_snaps": [],
+        "removed_snaps": "[]",
+        "quota_max_bytes": 0,
+        "quota_max_objects": 0,
+        "tiers": [],
+        "tier_of": -1,
+        "read_tier": -1,
+        "write_tier": -1,
+        "cache_mode": "none",
+        "target_max_bytes": 0,
+        "target_max_objects": 0,
+        "cache_target_dirty_ratio_micro": 400000,
+        "cache_target_dirty_high_ratio_micro": 600000,
+        "cache_target_full_ratio_micro": 800000,
+        "cache_min_flush_age": 0,
+        "cache_min_evict_age": 0,
+        "erasure_code_profile": "",
+        "hit_set_params": {
+            "type": "none"
+        },
+        "hit_set_period": 0,
+        "hit_set_count": 0,
+        "use_gmt_hitset": true,
+        "min_read_recency_for_promote": 0,
+        "min_write_recency_for_promote": 0,
+        "hit_set_grade_decay_rate": 0,
+        "hit_set_search_last_n": 0,
+        "grade_table": [],
+        "stripe_width": 0,
+        "expected_num_objects": 0,
+        "fast_read": false,
+        "options": {
+            "pg_num_max": 32,
+            "pg_num_min": 1
+        },
+        "application_metadata": {
+            "mgr_devicehealth": {}
+        }
+    },
+    {
+        "pool_id": 2,
+        "pool_name": "replpool1",
+        "create_time": "2022-07-07T07:27:30.162324+0000",
+        "flags": 1,
+        "flags_names": "hashpspool",
+        "type": 1,
+        "size": 3,
+        "min_size": 2,
+        "crush_rule": 0,
+        "peering_crush_bucket_count": 0,
+        "peering_crush_bucket_target": 0,
+        "peering_crush_bucket_barrier": 0,
+        "peering_crush_bucket_mandatory_member": 2147483647,
+        "object_hash": 2,
+        "pg_autoscale_mode": "on",
+        "pg_num": 64,
+        "pg_placement_num": 64,
+        "pg_placement_num_target": 64,
+        "pg_num_target": 64,
+        "pg_num_pending": 64,
+        "last_pg_merge_meta": {
+            "source_pgid": "0.0",
+            "ready_epoch": 0,
+            "last_epoch_started": 0,
+            "last_epoch_clean": 0,
+            "source_version": "0'0",
+            "target_version": "0'0"
+        },
+        "last_change": "267",
+        "last_force_op_resend": "0",
+        "last_force_op_resend_prenautilus": "0",
+        "last_force_op_resend_preluminous": "0",
+        "auid": 0,
+        "snap_mode": "selfmanaged",
+        "snap_seq": 0,
+        "snap_epoch": 0,
+        "pool_snaps": [],
+        "removed_snaps": "[]",
+        "quota_max_bytes": 0,
+        "quota_max_objects": 0,
+        "tiers": [],
+        "tier_of": -1,
+        "read_tier": -1,
+        "write_tier": -1,
+        "cache_mode": "none",
+        "target_max_bytes": 0,
+        "target_max_objects": 0,
+        "cache_target_dirty_ratio_micro": 400000,
+        "cache_target_dirty_high_ratio_micro": 600000,
+        "cache_target_full_ratio_micro": 800000,
+        "cache_min_flush_age": 0,
+        "cache_min_evict_age": 0,
+        "erasure_code_profile": "",
+        "hit_set_params": {
+            "type": "none"
+        },
+        "hit_set_period": 0,
+        "hit_set_count": 0,
+        "use_gmt_hitset": true,
+        "min_read_recency_for_promote": 0,
+        "min_write_recency_for_promote": 0,
+        "hit_set_grade_decay_rate": 0,
+        "hit_set_search_last_n": 0,
+        "grade_table": [],
+        "stripe_width": 0,
+        "expected_num_objects": 0,
+        "fast_read": false,
+        "options": {},
+        "application_metadata": {
+            "rbd": {}
+        }
+    }
+]
+[root@c3-server-a ~]# ceph osd pool application enable replpool1 rbd

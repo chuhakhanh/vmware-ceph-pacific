@@ -1,0 +1,47 @@
+storage:
+  useAllNodes: false
+  useAllDevices: false
+  nodes:
+  - name: "c3-server-c"
+    devices:
+    - name: "/dev/sdb"
+      config:
+        deviceClass: hdd
+    - name: "/dev/sdc"
+      config:
+        deviceClass: hdd
+    - name: "/dev/sdd"
+      config:
+        deviceClass: ssd
+    - name: "/dev/sde"
+      config:
+        deviceClass: ssd
+  - name: "c3-server-d"
+    devices:
+    - name: "/dev/sdb"
+      config:
+        deviceClass: hdd
+    - name: "/dev/sdc"
+      config:
+        deviceClass: hdd
+    - name: "/dev/sdd"
+      config:
+        deviceClass: ssd
+    - name: "/dev/sde"
+      config:
+        deviceClass: ssd
+  - name: "c3-server-e"
+    devices:
+    - name: "/dev/sdb"
+      config:
+        deviceClass: hdd
+    - name: "/dev/sdc"
+      config:
+        deviceClass: hdd
+    - name: "/dev/sdd"
+      config:
+        deviceClass: ssd
+    - name: "/dev/sde"
+      config:
+        deviceClass: ssd
+  
