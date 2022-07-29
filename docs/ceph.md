@@ -161,11 +161,59 @@ TO change cluster_network to 192.167.126.0/24
 ### Create pool
     ceph osd pool create replpool1 64 64
 
-### get set config 
+#### get set config 
     
     ceph osd pool ls detail -f json-pretty
     ceph osd pool set replpool1 size 4
     ceph osd pool get replpool1 size
 
     ceph osd pool application enable replpool1 rbd
-    
+    ceph osd pool rename replpool1 newpool
+    ceph osd pool delete newpool
+
+#### erasure code
+    ceph osd erasure-code-profile ls
+    ceph osd erasure-code-profile get default
+    ceph osd erasure-code-profile set ecprofile-k4-m2 k=4 m=2
+    ceph osd pool create ecpool1 64 64 erasure ecprofile-k4-m2
+
+## AUTHENTICATION
+
+### Client Name
+Naming convention
+
+    librados:       client.openstack
+    rgw:            client.rgw.webgw01
+    Administration: client.admin
+
+Keyring    
+    /etc/ceph/$cluster.$name.keyring
+    /etc/ceph/ceph.client.openstack.keyring
+    /etc/ceph/ceph.client.rgw.webgw01.keyring
+
+    root@c3-server-a ceph]# cat ceph.client.admin.keyring 
+    [client.admin]
+            key = AQAY57JiybKYARAAziO8ezIrsO4VksdNGJVSxQ==
+            caps mds = "allow *"
+            caps mgr = "allow *"
+            caps mon = "allow *"
+            caps osd = "allow *"
+
+
+## CRUSHMAP
+
+### Get 
+    ceph osd getcrushmap -o ./map.bin 
+    crushtool -d ./map.bin -o ./map.txt
+
+    ceph osd crush tree
+
+
+### TUNING
+
+However, the bucket index pool typically displays a more I/O-intensive workload pattern. Store the index pools on SSD devices. 
+The RADOS Gateway maintains one index per bucket. By default, Ceph stores this index in
+one RADOS object. 
+
+
+
